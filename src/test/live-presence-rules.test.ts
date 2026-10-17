@@ -26,6 +26,11 @@ describe("Live Integraties list", () => {
     expect(LCP).toContain("wakatime");
     expect(LCP).not.toContain("spotify");
   });
+  it("includes YouTube and every other connectable service from the add popup", () => {
+    expect(LCP).toContain("youtube");
+    expect(LCP).toContain("duolingo");
+    expect(LCP).not.toContain("monero");
+  });
 });
 
 describe("Fediverse 24-hour window", () => {

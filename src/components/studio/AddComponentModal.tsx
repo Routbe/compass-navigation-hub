@@ -167,6 +167,7 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
   /** null = catalogus; "all" = volledige kluis; anders één dienst. */
   const [vault, setVault] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [searchFocus, setSearchFocus] = useState(false);
   const qc = useQueryClient();
   const fetchPresence = useServerFn(getMyPresence);
   const fetchMine = useServerFn(getMyIntegrations);
@@ -180,6 +181,7 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
 
   const close = () => {
     setVault(null);
+    setSearchFocus(false);
     setCategory(null);
     setTab("suggested");
     setQuery("");
@@ -257,8 +259,19 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
     return INTEGRATIONS.filter((i) => i.category === tab);
   })();
 
+  const showSocials = category === "socials" || (category === "all" && (Boolean(q) || tab === "all" || tab === "suggested"));
+  const socialList = !showSocials ? [] : SOCIAL_KINDS.filter((k) =>
+    !q || k.label.toLowerCase().includes(q) || k.kind.toLowerCase().includes(q),
+  );
+  const pickSocial = (kind: string) => {
+    close();
+    onAdd(kind);
+  };
+
   const pickItem = (item: LibraryItem) => {
     if (item.kind.startsWith("vault:")) return setVault(item.kind.slice(6));
+    // "Socials icoon-rij" opens the full platform picker instead of adding Instagram directly.
+    if (item.tag === "socials") return openCategory("socials");
     close();
     if (isProfileSectionKind(item.kind)) { onAdd(item.kind); return; }
     if (item.kind.startsWith("widget:")) {
@@ -291,7 +304,18 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
             </div>
           ) : !category ? (
             <div className="min-h-0 flex-1 overflow-y-auto">
-              <p className="mb-3 text-sm text-muted-foreground">Kies wat voor component je wilt toevoegen.</p>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">Kies wat voor component je wilt toevoegen.</p>
+                <button
+                  type="button"
+                  onClick={() => { openCategory("all"); setSearchFocus(true); }}
+                  aria-label="Zoek een component"
+                  title="Zoeken"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Search className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {CATEGORIES.map(({ id, title: t, note, icon: Icon }) => (
                   <button
@@ -314,13 +338,14 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
             </div>
           ) : (
             <>
-              <button type="button" onClick={() => setCategory(null)} className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
+              <button type="button" onClick={() => { setCategory(null); setSearchFocus(false); }} className="inline-flex w-fit items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-3.5 w-3.5" aria-hidden /> Alle categorieën
               </button>
               <label className="relative block">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
                 <input
                   type="search"
+                  autoFocus={searchFocus}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={category === "live" ? "Zoek een dienst, bv. spo, git, ches…" : "Zoek in deze categorie…"}
@@ -364,6 +389,24 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
                   </button>
                 ))}
+                {socialList.length > 0 && category === "all" && libraryList.length > 0 && (
+                  <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sociale media</h3>
+                )}
+                {socialList.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {socialList.map((k) => (
+                      <button
+                        key={k.kind}
+                        type="button"
+                        onClick={() => pickSocial(k.kind)}
+                        className="flex items-center gap-2.5 rounded-xl border border-border bg-background p-3 text-left transition-colors hover:bg-muted"
+                      >
+                        <SocialLogo kind={k.kind} />
+                        <span className="min-w-0 truncate text-sm font-medium">{k.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {liveList.length > 0 && category === "all" && libraryList.length > 0 && (
                   <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status &amp; Feeds</h3>
                 )}
@@ -403,7 +446,7 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
                     <button type="button" onClick={() => setVault("all")} className="underline underline-offset-2">Alle koppelingen beheren</button>
                   </p>
                 )}
-                {libraryList.length === 0 && liveList.length === 0 && (
+                {libraryList.length === 0 && liveList.length === 0 && socialList.length === 0 && (
                   <p className="py-8 text-center text-sm text-muted-foreground">Niets gevonden.</p>
                 )}
               </div>
