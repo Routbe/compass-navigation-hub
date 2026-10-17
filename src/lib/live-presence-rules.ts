@@ -1,3 +1,4 @@
+import { INTEGRATIONS } from "@/lib/integrations-catalog";
 /** Live-status visibility: some integrations only show while (recently) in use. Browser-safe. */
 const HOUR = 3600_000;
 
@@ -24,5 +25,10 @@ export function isSpotifyVisible(np: { playing?: boolean } | null | undefined): 
   return np?.playing === true;
 }
 
-/** Vault providers that feed live data and appear under "Live Integraties" (Spotify lives in presence). */
-export const LIVE_CAPABLE_PROVIDERS: string[] = ["github", "gitlab", "wakatime", "mastodon", "bluesky", "wsocial", "lichess", "chesscom", "duolingo"];
+/**
+ * Vault providers that appear under "Live Integraties": every connectable catalog service
+ * (the same list the add-component popup offers), except Spotify (presence-backed) and payments.
+ */
+export const LIVE_CAPABLE_PROVIDERS: string[] = INTEGRATIONS
+  .filter((i) => i.mode !== "soon" && i.id !== "spotify" && i.category !== "payments")
+  .map((i) => i.id);
