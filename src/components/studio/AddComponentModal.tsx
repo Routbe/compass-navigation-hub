@@ -259,6 +259,15 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
     return INTEGRATIONS.filter((i) => i.category === tab);
   })();
 
+  const showSocials = category === "socials" || (category === "all" && (Boolean(q) || tab === "all" || tab === "suggested"));
+  const socialList = !showSocials ? [] : SOCIAL_KINDS.filter((k) =>
+    !q || k.label.toLowerCase().includes(q) || k.kind.toLowerCase().includes(q),
+  );
+  const pickSocial = (kind: string) => {
+    close();
+    onAdd(kind);
+  };
+
   const pickItem = (item: LibraryItem) => {
     if (item.kind.startsWith("vault:")) return setVault(item.kind.slice(6));
     close();
@@ -378,6 +387,24 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
                   </button>
                 ))}
+                {socialList.length > 0 && category === "all" && libraryList.length > 0 && (
+                  <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sociale media</h3>
+                )}
+                {socialList.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {socialList.map((k) => (
+                      <button
+                        key={k.kind}
+                        type="button"
+                        onClick={() => pickSocial(k.kind)}
+                        className="flex items-center gap-2.5 rounded-xl border border-border bg-background p-3 text-left transition-colors hover:bg-muted"
+                      >
+                        <SocialLogo kind={k.kind} />
+                        <span className="min-w-0 truncate text-sm font-medium">{k.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {liveList.length > 0 && category === "all" && libraryList.length > 0 && (
                   <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status &amp; Feeds</h3>
                 )}
@@ -417,7 +444,7 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
                     <button type="button" onClick={() => setVault("all")} className="underline underline-offset-2">Alle koppelingen beheren</button>
                   </p>
                 )}
-                {libraryList.length === 0 && liveList.length === 0 && (
+                {libraryList.length === 0 && liveList.length === 0 && socialList.length === 0 && (
                   <p className="py-8 text-center text-sm text-muted-foreground">Niets gevonden.</p>
                 )}
               </div>
