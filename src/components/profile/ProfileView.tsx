@@ -205,9 +205,10 @@ export function ProfileView({
           : prefs.badgeType === "domain" && !claimedDomain
             ? "verified"
             : prefs.badgeType;
+  const hasPro = profile.is_pro ?? Boolean(profile.verified);
   const showWatermark =
-    shouldShowWatermark(Boolean(profile.verified), prefs) &&
-    (profile.verified ? prefs.showRoutBadge : true);
+    shouldShowWatermark(hasPro, prefs) &&
+    (hasPro ? prefs.showRoutBadge : true);
   const wide = layout === "wide";
   const earlyBeliever = Boolean(profile.is_early_believer);
   const [showVerifyInfo, setShowVerifyInfo] = useState(false);

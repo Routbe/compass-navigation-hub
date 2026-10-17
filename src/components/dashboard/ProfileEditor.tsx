@@ -791,8 +791,7 @@ export function ProfileEditor({ variant = "verified" }: { variant?: ProfileVaria
     window.setTimeout(() => {
       const input = handleInputRef.current;
       if (!input) return;
-      input.scrollIntoView({ behavior: "smooth", block: "center" });
-      input.focus();
+      input.focus({ preventScroll: true });
     }, 220);
   };
 

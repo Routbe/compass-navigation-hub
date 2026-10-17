@@ -1,3 +1,4 @@
+import { hasProfilePro } from "./profile-entitlements";
 import { isHandleBlock, normalizeSocialHandle } from "./social-handles";
 import { sql } from "@/lib/neon";
 import { isReservedHandle, normalizeHandle } from "@/lib/profile";
@@ -295,7 +296,7 @@ export async function readPublicProfile(rawHandle: string) {
   } catch (error) {
     console.warn("[public-profile:social-links:skipped]", username, error);
   }
-  return { ...profile, social_links: socialLinks } as Row;
+  return { ...profile, is_pro: hasProfilePro(profile), social_links: socialLinks } as Row;
 }
 
 /** Aggregated, privacy-clean studio analytics: counts only, no visitor data. */

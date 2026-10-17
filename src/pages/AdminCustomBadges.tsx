@@ -125,10 +125,10 @@ function BadgeForm({ initial, onSaved, onCancel }: { initial?: Badge; onSaved: (
         >
           <BadgeEmblem badge={{ name: d.name || "Badge", imageUrl: d.imageUrl, kind: d.kind, accentColor: d.accentColor }} size={96} />
           <span className="text-xs text-muted-foreground">{uploading ? "Uploaden…" : d.imageUrl ? "Andere afbeelding" : "Afbeelding kiezen"}</span>
-          <span className="text-[10px] text-muted-foreground">PNG, JPG of WebP · max 2 MB</span>
+          <span className="text-[10px] text-muted-foreground">PNG, SVG, JPG of WebP · max 2 MB</span>
           <input
             type="file"
-            accept="image/png,image/jpeg,image/webp"
+            accept="image/png,image/svg+xml,image/jpeg,image/webp"
             className="sr-only"
             onChange={async (e) => {
               const file = e.target.files?.[0];
