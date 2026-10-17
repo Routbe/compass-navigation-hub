@@ -270,6 +270,8 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
 
   const pickItem = (item: LibraryItem) => {
     if (item.kind.startsWith("vault:")) return setVault(item.kind.slice(6));
+    // "Socials icoon-rij" opens the full platform picker instead of adding Instagram directly.
+    if (item.tag === "socials") return openCategory("socials");
     close();
     if (isProfileSectionKind(item.kind)) { onAdd(item.kind); return; }
     if (item.kind.startsWith("widget:")) {
