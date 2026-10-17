@@ -1,7 +1,9 @@
 # Roadmap
-- [ ] Secrets / database connection (Neon connector, auth secret)
-- [x] P1 AddComponentModal search + socials (done earlier)
-- [ ] P2 Live integrations: no hiding by 24h window in hub; invalidate queries on add
-- [ ] P3 Admin OAuth apps: tabs pending / approved / rejected / suspended
-- [ ] P4 Badge transparency; alias profile inherits Pro
-- [ ] P5 Studio: presets 4 per row mobile; style options distinct + a11y warning; scroll stability
+- [x] Database connection + app secrets
+- [x] P1 AddComponentModal search + socials
+- [x] P2 Live integrations in hub
+- [x] P3 Admin OAuth apps tabs
+- [x] P4 Badge transparency; alias inherits Pro
+- [x] P5 Studio presets, style options, scroll stability
+- [ ] Snapchat in Live Integraties hub (separate storage)
+- [ ] Optional sign-in/email/storage/payment keys (Google, Brevo, Scaleway, Stripe) — waits on user

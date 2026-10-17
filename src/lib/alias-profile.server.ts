@@ -1,4 +1,5 @@
 import { runSchemaEnsure } from "@/lib/db/schema-ensure.server";
+import { hasProfilePro } from "./profile-entitlements";
 import { sql } from "@/lib/neon";
 import { isReservedHandle, normalizeHandle } from "@/lib/profile";
 import { normalizeHandleForStorage } from "@/lib/handle-rules";
@@ -199,7 +200,7 @@ export async function writeAliasProfile(userId: string, input: AliasProfileInput
 
 /**
  * Publieke lookup voor `/u/<handle>`. Levert een rij in hetzelfde formaat als
- * `readPublicProfile`, maar altijd als niet-geverifieerd gratis profiel.
+ * `readPublicProfile`, zonder identiteitsvinkje maar met de Pro-rechten van de eigenaar.
  */
 export async function readPublicAliasProfile(rawHandle: string) {
   const handle = normalizeHandle(rawHandle);
@@ -212,7 +213,9 @@ export async function readPublicAliasProfile(rawHandle: string) {
            coalesce(p.is_banned, false) as is_banned,
            coalesce(p.is_suspended, false) as is_suspended,
            coalesce(p.verified, false) as owner_verified,
-           p.verified_at as owner_verified_at
+           p.verified_at as owner_verified_at,
+           coalesce((to_jsonb(p) ->> 'is_paid')::boolean, false) as owner_is_paid,
+           to_jsonb(p) ->> 'tier' as owner_tier
       from public.alias_profiles a
       join public.profiles p on p.id = a.user_id
      where lower(a.handle) = ${handle}
@@ -225,6 +228,7 @@ export async function readPublicAliasProfile(rawHandle: string) {
   return {
     ...row,
     verified: false,
+    is_pro: hasProfilePro({ verified: row["owner_verified"], is_paid: row["owner_is_paid"], tier: row["owner_tier"] }),
     // Het blauwe vinkje blijft bij het rootprofiel; het aliasprofiel toont het
     // mens-symbool wanneer het gekoppelde account geverifieerd is.
     human_linked: Boolean(row["owner_verified"]),

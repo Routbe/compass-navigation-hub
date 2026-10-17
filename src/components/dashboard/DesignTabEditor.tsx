@@ -518,15 +518,15 @@ export function DesignButtonsTypographySection({
               <button key={id} type="button" role="radio" aria-checked={prefs.buttonShape === id} onClick={() => setPref("buttonShape", id)}
                 className={cn("flex flex-col items-center gap-2 rounded-xl border p-3 text-xs font-medium", prefs.buttonShape === id ? "border-primary ring-1 ring-primary" : "border-border")}>
                 {id === "bar"
-                  ? <span className="flex h-8 w-full items-center justify-center text-[10px]" style={{ ...preview({}), borderRadius: 999 }}>Mijn link</span>
-                  : <span className="flex h-9 w-9 items-center justify-center" style={{ ...preview({}), borderRadius: 999, padding: 0 }}>●</span>}
+                  ? <span className="flex h-8 w-full items-center justify-center text-[10px]" style={{ ...preview({ buttonShape: "bar" }), borderRadius: radiusPx(prefs.buttonRadius), border: "1px solid currentColor", background: "transparent", color: t.text }}>Mijn link</span>
+                  : <span className="flex h-9 w-9 items-center justify-center" style={{ ...preview({ buttonShape: "icon" }), borderRadius: "999px", padding: 0, background: t.accent ?? t.text, color: t.bg }}>♥</span>}
                 {label}
               </button>
             ))}
           </div>
           {prefs.buttonShape === "icon" && (
             <p role="note" className="rounded-lg border border-border bg-muted/40 p-2.5 text-[11px] text-muted-foreground">
-              Let op: zonder zichtbare naam weten bezoekers alleen aan het icoon waar een knop naartoe gaat. Schermlezers lezen de naam nog steeds voor, maar voor slechtzienden en bij eigen links zonder herkenbaar logo is dit minder duidelijk.
+              Alleen iconen is minder duidelijk voor sommige bezoekers en schermlezers.
             </p>
           )}
           <p className="input-label pt-2">Knopstijl</p>
@@ -535,7 +535,7 @@ export function DesignButtonsTypographySection({
               <button key={v.id} type="button" onClick={() => setPref("buttonVariant", v.id)} aria-pressed={prefs.buttonVariant === v.id}
                 className={cn("space-y-2 rounded-xl border p-2.5 text-left transition-colors", prefs.buttonVariant === v.id ? "border-primary ring-1 ring-primary" : "border-border")}>
                 <span className="flex h-12 items-center justify-center rounded-lg px-2" style={{ background: t.bg }} aria-hidden>
-                  <span className="flex h-7 w-full items-center justify-center text-[10px] font-medium" style={preview({ buttonVariant: v.id })}>Link</span>
+                  <span className="flex h-7 w-full items-center justify-center text-[10px] font-medium" style={{ ...preview({ buttonVariant: v.id }), borderRadius: radiusPx(prefs.buttonRadius), border: v.id.toLowerCase().includes("outline") || v.id.toLowerCase().includes("ghost") ? `2px solid ${t.accent ?? t.text}` : "2px solid transparent", background: v.id.toLowerCase().includes("outline") || v.id.toLowerCase().includes("ghost") ? "transparent" : (t.accent ?? t.text), color: v.id.toLowerCase().includes("outline") || v.id.toLowerCase().includes("ghost") ? (t.accent ?? t.text) : t.bg }}>Link</span>
                 </span>
                 <span className="block text-xs font-medium">{v.label}</span>
                 <span className="block text-[10px] leading-snug text-muted-foreground">{v.note}</span>

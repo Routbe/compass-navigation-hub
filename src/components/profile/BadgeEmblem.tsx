@@ -24,7 +24,7 @@ export function BadgeEmblem({
         height={size}
         loading="lazy"
         className="object-contain"
-        style={{ width: size, height: size }}
+        style={{ width: size, height: size, background: "transparent" }}
       />
     );
   }

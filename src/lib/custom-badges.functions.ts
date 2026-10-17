@@ -72,9 +72,14 @@ export const adminUploadBadgeImage = createServerFn({ method: "POST" })
     await guard(context.userId);
     const s = await import("@/lib/storage/s3.server");
     const bytes = s.base64ToBytes(data.base64);
-    const real = s.sniffType(bytes);
-    if (!real || !(s.IMAGE_TYPES as readonly string[]).includes(real)) return { ok: false as const, message: "Gebruik PNG, JPG of WebP." };
-    const key = `badges/custom/${crypto.randomUUID()}.${s.extFor(real)}`;
+    // Bewaar de originele bytes: geen canvas, JPEG-conversie of achtergrond.
+    const svg = new TextDecoder().decode(bytes).trim();
+    const safeSvg = /^(?:<\?xml[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*<svg[\s>]/i.test(svg)
+      && !/<(?:script|foreignObject|iframe|object|embed|style)\b|<!DOCTYPE|<!ENTITY|\bon[a-z]+\s*=|javascript:|data:|url\s*\(/i.test(svg)
+      && !/\b(?:href|src)\s*=\s*["'](?!#)/i.test(svg);
+    const real = s.sniffType(bytes) ?? (safeSvg ? "image/svg+xml" : null);
+    if (!real || real !== "image/svg+xml" && !(s.IMAGE_TYPES as readonly string[]).includes(real)) return { ok: false as const, message: "Gebruik PNG, SVG, JPG of WebP." };
+    const key = `badges/custom/${crypto.randomUUID()}.${real === "image/svg+xml" ? "svg" : s.extFor(real)}`;
     if (!s.storageConfigured("internal")) return { ok: false as const, message: "Opslag is niet ingesteld (S3_* variabelen ontbreken)." };
     await s.putObject("internal", key, bytes, { contentType: real, publicRead: true });
     return { ok: true as const, url: s.publicUrl("internal", key) };

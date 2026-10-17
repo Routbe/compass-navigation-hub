@@ -125,6 +125,8 @@ export interface ProfileRecord {
   verified?: boolean;
   /** Aliasprofiel (`/u/…`) van een lid met een geverifieerd rootprofiel. */
   human_linked?: boolean;
+  /** Server-side afgeleid van de eigenaar, los van het identiteitsvinkje. */
+  is_pro?: boolean;
   /** Goedgekeurd bedrijf: zwarte badge, pagina op de officiële domeinnaam. */
   is_business?: boolean;
   business_name?: string | null;

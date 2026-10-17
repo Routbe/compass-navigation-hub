@@ -8,6 +8,10 @@
    Warm paper surfaces, deep matcha accent, crisp ink borders,
    organic-brutalist sticker shadows. */
 
+html {
+  scrollbar-gutter: stable;
+}
+
 :root {
   color-scheme: light;
   /* Warm Paper #FBF9F5 */
