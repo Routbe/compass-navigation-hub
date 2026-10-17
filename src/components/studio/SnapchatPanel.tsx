@@ -18,7 +18,21 @@ const FLAGS: Record<string, string> = {
 };
 
 /** Snapchat: Snap Kit koppeling, Bitmoji als profielfoto, kaart en handmatige status. */
+export function useSnapchatCallback() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const flag = url.searchParams.get("snapchat");
+    if (!flag) return;
+    (flag === "connected" ? toast.success : toast.error)(FLAGS[flag] ?? "Koppelen mislukt");
+    void qc.invalidateQueries({ queryKey: ["my-snapchat"] });
+    url.searchParams.delete("snapchat");
+    window.history.replaceState(null, "", url.toString());
+  }, [qc]);
+}
+
 export function SnapchatPanel() {
+  useSnapchatCallback();
   const qc = useQueryClient();
   const fetchSnap = useServerFn(getMySnapchat);
   const update = useServerFn(updateMySnapchat);
@@ -34,14 +48,7 @@ export function SnapchatPanel() {
     setText(snap?.moodText ?? "");
   }, [snap?.moodEmoji, snap?.moodText]);
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const flag = url.searchParams.get("snapchat");
-    if (!flag) return;
-    (flag === "connected" ? toast.success : toast.error)(FLAGS[flag] ?? FLAGS["failed"]!);
-    url.searchParams.delete("snapchat");
-    window.history.replaceState(null, "", url.toString());
-  }, []);
+
 
   const save = async (p: { moodEmoji?: string | null; moodText?: string | null; showCard?: boolean; showMood?: boolean }) => {
     await update({ data: p });
@@ -61,7 +68,7 @@ export function SnapchatPanel() {
           </Button>
         ) : (
           <Button size="sm" onClick={() => {
-            if (q.data && !q.data.ready) return void toast.error(FLAGS["not_configured"]!);
+            if (q.data && !q.data.ready) return void toast.error(FLAGS["not_configured"] ?? "Snapchat niet ingesteld");
             window.location.href = "/api/snapchat/start";
           }}>
             Koppel Snapchat

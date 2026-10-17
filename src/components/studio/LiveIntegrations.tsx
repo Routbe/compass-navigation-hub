@@ -1,3 +1,5 @@
+import { getMySnapchat } from "@/lib/snapchat.functions";
+import { SnapchatPanel } from "./SnapchatPanel";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, type ReactNode } from "react";
@@ -6,7 +8,7 @@ import { BadgeCheck, ChevronDown, Plus, RefreshCw } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { BrandIcon } from "@/components/integrations/BrandIcon";
 import { integrationById } from "@/lib/integrations-catalog";
-import { LIVE_CAPABLE_PROVIDERS } from "@/lib/live-presence-rules";
+import { LIVE_CAPABLE_PROVIDERS, liveConnectionCount } from "@/lib/live-presence-rules";
 import { getMyIntegrations, removeIntegration, saveIntegration } from "@/lib/integrations.functions";
 import { disconnectSpotifyPresence, getMyPresence, setSpotifyPresenceScope, testSpotifyPresence } from "@/lib/presence.functions";
 import { getReachSettings, syncFollowersNow, updateReachSettings } from "@/lib/total-reach.functions";
@@ -21,11 +23,13 @@ import { isBioVerifiable } from "@/lib/open-web-rules";
 export function useLiveIntegrationCount(): number {
   const fetchPresence = useServerFn(getMyPresence);
   const fetchMine = useServerFn(getMyIntegrations);
+  const fetchSnap = useServerFn(getMySnapchat);
+  const snapchat = useQuery({ queryKey: ["my-snapchat"], queryFn: () => fetchSnap(), retry: false });
   const presence = useQuery({ queryKey: ["my-presence"], queryFn: () => fetchPresence(), retry: false });
   const mine = useQuery({ queryKey: ["my-integrations"], queryFn: () => fetchMine(), retry: false });
   const spotify = presence.data?.connections.some((c) => c.provider === "spotify") ? 1 : 0;
   const rows = (mine.data?.ready ? mine.data.items : []).filter((r) => LIVE_CAPABLE_PROVIDERS.includes(r.provider));
-  return spotify + rows.length;
+  return liveConnectionCount(Boolean(spotify), rows.map((r) => r.provider), Boolean(snapchat.data?.snap));
 }
 
 function scopeBadge(verified: boolean, alias: boolean): string {
@@ -132,6 +136,8 @@ export function LiveIntegrations() {
   const qc = useQueryClient();
   const fetchPresence = useServerFn(getMyPresence);
   const fetchMine = useServerFn(getMyIntegrations);
+  const fetchSnap = useServerFn(getMySnapchat);
+  const snapchat = useQuery({ queryKey: ["my-snapchat"], queryFn: () => fetchSnap(), retry: false });
   const fetchReach = useServerFn(getReachSettings);
   const save = useServerFn(saveIntegration);
   const remove = useServerFn(removeIntegration);
@@ -163,7 +169,7 @@ export function LiveIntegrations() {
       <p className="text-xs text-muted-foreground">
         Live kaarten verschijnen alleen bij recent gebruik: Spotify tijdens het afspelen; GitHub, GitLab, Mastodon, Bluesky en W.social bij activiteit in de laatste 24 uur.
       </p>
-      {!spotify && rows.length === 0 && (
+      {!spotify && !snapchat.data?.snap && rows.length === 0 && (
         <p className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground">
           Nog geen live diensten gekoppeld.
         </p>
@@ -197,6 +203,11 @@ export function LiveIntegrations() {
               Ontkoppelen
             </button>
           </div>
+        </Row>
+      )}
+      {snapchat.data?.snap && (
+        <Row icon="siSnapchat" label="Snapchat" account={snapchat.data.snap.displayName ?? "Snapchat"} badge={snapchat.data.snap.showCard ? "Zichtbaar" : "Verborgen"}>
+          <SnapchatPanel />
         </Row>
       )}
       {rows.map((row) => {

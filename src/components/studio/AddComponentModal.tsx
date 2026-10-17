@@ -1,3 +1,4 @@
+import { getMySnapchat, updateMySnapchat } from "@/lib/snapchat.functions";
 import { useMemo, useState, type ComponentType } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -171,6 +172,10 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
   const qc = useQueryClient();
   const fetchPresence = useServerFn(getMyPresence);
   const fetchMine = useServerFn(getMyIntegrations);
+  const fetchSnap = useServerFn(getMySnapchat);
+  const showSnap = useServerFn(updateMySnapchat);
+  const snapQuery = useQuery({ queryKey: ["my-snapchat"], queryFn: () => fetchSnap(), retry: false, enabled: open });
+  const snap = snapQuery.data?.snap;
   const save = useServerFn(saveIntegration);
   const showSpotify = useServerFn(setSpotifyPresenceVisible);
   const presence = useQuery({ queryKey: ["my-presence"], queryFn: () => fetchPresence(), retry: false, enabled: open });
@@ -198,7 +203,11 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
     const label = integrationById(provider)?.label ?? provider;
     setBusy(provider);
     try {
-      if (provider === "spotify" && spotify) {
+      if (provider === "snapchat") {
+        if (!snap) { setVault(provider); return; }
+        await showSnap({ data: { showCard: true } });
+        await qc.invalidateQueries({ queryKey: ["my-snapchat"] });
+      } else if (provider === "spotify" && spotify) {
         await showSpotify({ data: { show: true } });
         await qc.invalidateQueries({ queryKey: ["my-presence"] });
       } else {
@@ -413,8 +422,8 @@ export function AddComponentModal({ open, onClose, onAdd, handle, onWidget }: Pr
                 {liveList.map((item) => {
                   const soon = item.mode === "soon";
                   const row = rowFor(item.id);
-                  const linked = item.id === "spotify" ? Boolean(spotify) : Boolean(row);
-                  const account = item.id === "spotify" ? spotify?.accountName ?? "account" : row ? `@${row.handle.replace(/^@/, "")}` : "";
+                  const linked = item.id === "snapchat" ? Boolean(snap) : item.id === "spotify" ? Boolean(spotify) : Boolean(row);
+                  const account = item.id === "snapchat" ? snap?.displayName ?? "Snapchat" : item.id === "spotify" ? spotify?.accountName ?? "account" : row ? `@${row.handle.replace(/^@/, "")}` : "";
                   return (
                     <div key={item.id} className={`flex items-center gap-2.5 rounded-xl border border-border bg-background p-3 ${soon ? "opacity-60" : ""}`}>
                       <BrandIcon icon={item.icon} />

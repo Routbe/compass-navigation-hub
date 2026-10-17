@@ -5,6 +5,8 @@ import { Search } from "lucide-react";
 import { BadgeCheck, ExternalLink } from "lucide-react";
 import type { ShowcaseCard } from "@/lib/showcase.functions";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { proxied } from "@/lib/image-proxy-rules";
 
 /** Bento layout: first card large, then a repeating wide/square rhythm. */
 const SPAN = ["sm:col-span-2 sm:row-span-2", "", "", "sm:col-span-2", "", "sm:row-span-2", "", "sm:col-span-2"];
@@ -50,7 +52,7 @@ export function ExploreGallery({ cards, filters = false }: { cards: ShowcaseCard
           </label>
           <div className="flex gap-2" role="group">
             {([false, true] as const).map((v) => (
-              <button
+              <Button
                 key={String(v)}
                 type="button"
                 aria-pressed={onlyVerified === v}
@@ -61,13 +63,13 @@ export function ExploreGallery({ cards, filters = false }: { cards: ShowcaseCard
                 )}
               >
                 {t(v ? "explore.filter.verified" : "explore.filter.all")}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
       )}
       {shown.length === 0 && <p className="py-12 text-center text-muted-foreground">{t("explore.noResults")}</p>}
-      <div className="grid auto-rows-[200px] grid-cols-1 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:auto-rows-[minmax(240px,auto)] sm:grid-cols-4">
         {shown.map((c, i) => {
           const big = i === 0;
           return (
@@ -77,34 +79,55 @@ export function ExploreGallery({ cards, filters = false }: { cards: ShowcaseCard
               params={{ username: c.handle }}
               preload="intent"
               className={cn(
-                "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border bg-card p-6 transition-all duration-300 [@media(hover:hover)]:hover:border-foreground/40 [@media(hover:hover)]:hover:shadow-lg animate-in fade-in slide-in-from-bottom-2",
+                "group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 motion-safe:hover:-translate-y-1 [@media(hover:hover)]:hover:border-primary/50 [@media(hover:hover)]:hover:shadow-lg",
                 SPAN[i % SPAN.length],
               )}
             >
+              <div className="flex flex-1 items-center bg-muted">
+                <img
+                  src={`/api/public/og/${encodeURIComponent(c.handle)}.png`}
+                  alt={t("explore.preview", { name: c.displayName ?? c.handle })}
+                  loading="lazy"
+                  width={1200}
+                  height={630}
+                  className="aspect-[1200/630] w-full object-contain"
+                  onError={(event) => {
+                    const image = event.currentTarget;
+                    if (!image.dataset.fallback) {
+                      image.dataset.fallback = "svg";
+                      image.src = `/api/public/og/${encodeURIComponent(c.handle)}.svg`;
+                    } else {
+                      image.style.display = "none";
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-3 p-4">
               <div className="flex items-center gap-3">
                 {c.avatarUrl ? (
-                  <img src={c.avatarUrl} alt="" loading="lazy" className={cn("rounded-full border border-border object-cover", big ? "h-16 w-16" : "h-11 w-11")} />
+                  <img src={proxied(c.avatarUrl) ?? undefined} alt="" loading="lazy" className="h-10 w-10 shrink-0 rounded-full border border-border object-cover" />
                 ) : (
                   <span className={cn("flex items-center justify-center rounded-full bg-muted font-serif font-semibold text-foreground", big ? "h-16 w-16 text-2xl" : "h-11 w-11 text-lg")}>
                     {(c.displayName ?? c.handle).charAt(0).toUpperCase()}
                   </span>
                 )}
                 <div className="min-w-0">
-                  <p className={cn("flex items-center gap-1.5 truncate font-serif font-semibold text-foreground", big ? "text-2xl" : "text-base")}>
-                    {c.displayName ?? c.handle}
+                   <p className="flex items-center gap-1.5 font-serif text-base font-semibold text-foreground">
+                     <span className="truncate">{c.displayName ?? c.handle}</span>
                     {c.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label={t("explore.filter.verified")} />}
                   </p>
                   <p className="truncate font-mono text-xs text-muted-foreground">rout.be/{c.handle}</p>
                 </div>
               </div>
               {(c.tagline || c.bio) && (
-                <p className={cn("text-muted-foreground", big ? "line-clamp-4 text-lg leading-relaxed" : "line-clamp-2 text-sm")}>
+                 <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                   {c.tagline || c.bio}
                 </p>
               )}
               <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground opacity-70">
                 {t("explore.view")} <ExternalLink className="h-3 w-3" aria-hidden />
               </span>
+              </div>
             </Link>
           );
         })}
