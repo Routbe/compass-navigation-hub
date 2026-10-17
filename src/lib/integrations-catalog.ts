@@ -59,7 +59,7 @@ export const INTEGRATIONS: Integration[] = [
   soon("reddit", "Reddit", "socials", "siReddit"),
   { id: "mastodon", label: "Mastodon", category: "socials", icon: "siMastodon", mode: "handle", placeholder: "@naam@mastodon.social" },
   soon("threads", "Threads", "socials", "siThreads"),
-  soon("snapchat", "Snapchat", "socials", "siSnapchat"),
+  { id: "snapchat", label: "Snapchat", category: "socials", icon: "siSnapchat", mode: "oauth" },
   soon("tumblr", "Tumblr", "socials", "siTumblr"),
   soon("pixelfed", "Pixelfed", "socials", "siPixelfed"),
   // Werk & Code

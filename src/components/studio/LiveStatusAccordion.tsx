@@ -1,3 +1,4 @@
+import { useSnapchatCallback } from "./SnapchatPanel";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { StatusContentSettings } from "@/components/dashboard/editor/StatusSettings";
 import { useState } from "react";
@@ -9,6 +10,7 @@ type SetPref = <K extends keyof ProfileDisplayPrefs>(key: K, value: ProfileDispl
 
 /** 💬 Live Status & Gedachten: status indicator + status bericht. */
 export function LiveStatusAccordion({ prefs, setPref }: { prefs: ProfileDisplayPrefs; setPref: SetPref }) {
+  useSnapchatCallback();
   return (
     <AccordionItem value="live_status" className="rounded-2xl border border-border bg-card px-4 sm:px-5">
       <AccordionTrigger className="hover:no-underline">

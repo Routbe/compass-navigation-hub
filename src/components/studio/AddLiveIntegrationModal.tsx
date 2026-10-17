@@ -1,3 +1,4 @@
+import { getMySnapchat, updateMySnapchat } from "@/lib/snapchat.functions";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -36,6 +37,10 @@ export function AddLiveIntegrationModal({ open, onClose }: { open: boolean; onCl
   const qc = useQueryClient();
   const fetchPresence = useServerFn(getMyPresence);
   const fetchMine = useServerFn(getMyIntegrations);
+  const fetchSnap = useServerFn(getMySnapchat);
+  const showSnap = useServerFn(updateMySnapchat);
+  const snapQuery = useQuery({ queryKey: ["my-snapchat"], queryFn: () => fetchSnap(), retry: false, enabled: open });
+  const snap = snapQuery.data?.snap;
   const save = useServerFn(saveIntegration);
   const showSpotify = useServerFn(setSpotifyPresenceVisible);
   const presence = useQuery({ queryKey: ["my-presence"], queryFn: () => fetchPresence(), retry: false, enabled: open });
@@ -61,11 +66,16 @@ export function AddLiveIntegrationModal({ open, onClose }: { open: boolean; onCl
   const activate = async (item: Integration) => {
     setBusy(item.id);
     try {
-      if (item.id === "spotify") {
+      if (item.id === "snapchat") {
+        if (!snap) { setConnect(item.id); return; }
+        await showSnap({ data: { showCard: true } });
+        await qc.invalidateQueries({ queryKey: ["my-snapchat"] });
+      } else if (item.id === "spotify") {
         await showSpotify({ data: { show: true } });
         await qc.invalidateQueries({ queryKey: ["my-presence"] });
       } else {
-        const row = rowFor(item.id)!;
+        const row = rowFor(item.id);
+        if (!row) return;
         const r = await save({ data: { provider: item.id, handle: row.handle, audience: row.audience, visible: true, useSso: row.verified } });
         if (!r.ok) throw new Error();
         await qc.invalidateQueries({ queryKey: ["my-integrations"] });
@@ -129,8 +139,8 @@ export function AddLiveIntegrationModal({ open, onClose }: { open: boolean; onCl
                   {list.map((item) => {
                     const soon = item.mode === "soon";
                     const row = rowFor(item.id);
-                    const linked = item.id === "spotify" ? Boolean(spotify) : Boolean(row);
-                    const account = item.id === "spotify" ? spotify?.accountName ?? "account" : row ? `@${row.handle.replace(/^@/, "")}` : "";
+                    const linked = item.id === "snapchat" ? Boolean(snap) : item.id === "spotify" ? Boolean(spotify) : Boolean(row);
+                    const account = item.id === "snapchat" ? snap?.displayName ?? "Snapchat" : item.id === "spotify" ? spotify?.accountName ?? "account" : row ? `@${row.handle.replace(/^@/, "")}` : "";
                     return (
                       <div key={item.id} className={`flex items-center gap-2.5 rounded-xl border border-border bg-background p-3 ${soon ? "opacity-60" : ""}`}>
                         <BrandIcon icon={item.icon} />

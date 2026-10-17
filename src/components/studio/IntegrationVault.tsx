@@ -185,7 +185,7 @@ export function IntegrationVault({ focus }: { focus?: string } = {}) {
           Koppel en verifieer een dienst één keer. Daarna gebruik je hem op elk profiel en in elk component, zonder opnieuw te verifiëren.
           {connectedCount > 0 && <> · <strong>{connectedCount} gekoppeld</strong></>}
         </p>
-        {!focused && <SnapchatPanel />}
+        {(!focused || focused === "snapchat") && <SnapchatPanel />}
         {focused ? (
           <button type="button" onClick={() => setFocused(undefined)} className="text-xs font-medium text-muted-foreground underline underline-offset-2">Toon alle diensten</button>
         ) : (
@@ -209,7 +209,7 @@ export function IntegrationVault({ focus }: { focus?: string } = {}) {
         )}
 
         <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:grid-cols-3">
-          {(focused ? filterIntegrations("all").filter((i) => i.id === focused) : filterIntegrations(filter)).map((item) => {
+          {(focused ? filterIntegrations("all").filter((i) => i.id === focused) : filterIntegrations(filter)).filter((item) => item.id !== "snapchat").map((item) => {
             const row = saved.get(item.id);
             const isSpotify = item.mode === "oauth";
             const connected = isSpotify ? Boolean(spotify) : Boolean(row);

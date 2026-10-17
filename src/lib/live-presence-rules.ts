@@ -30,5 +30,10 @@ export function isSpotifyVisible(np: { playing?: boolean } | null | undefined): 
  * (the same list the add-component popup offers), except Spotify (presence-backed) and payments.
  */
 export const LIVE_CAPABLE_PROVIDERS: string[] = INTEGRATIONS
-  .filter((i) => i.mode !== "soon" && i.id !== "spotify" && i.category !== "payments")
+  .filter((i) => i.mode !== "soon" && i.id !== "spotify" && i.id !== "snapchat" && i.category !== "payments")
   .map((i) => i.id);
+
+/** Separate Snap Kit rows count once, independently of visibility or recent activity. */
+export function liveConnectionCount(spotify: boolean, providers: string[], snapchat: boolean): number {
+  return Number(spotify) + new Set(providers.filter((p) => LIVE_CAPABLE_PROVIDERS.includes(p))).size + Number(snapchat);
+}
