@@ -704,11 +704,15 @@ export function ProfileEditor({ variant = "verified" }: { variant?: ProfileVaria
 
   const quickCreate = (kind: QuickCreateOption["kind"]) => {
     if (kind === "__socials") {
+      setBlockTab(null);
+      setQuery("");
       setCat("socials");
       setDrawer(true);
       return;
     }
     if (kind === "__fediverse") {
+      setBlockTab(null);
+      setQuery("");
       setCat("featured");
       setDrawer(true);
       return;
